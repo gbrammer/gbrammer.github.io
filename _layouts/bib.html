@@ -54,7 +54,9 @@
     {% elsif entry.type == "inproceedings" %}
       <em>In {{entry.booktitle}}</em>
     {% endif %}
-    {% if entry.year %}
+    {% if entry.volume %}
+      {{entry.year}}, {{entry.volume}}, {{entry.pages}}
+    {% elsif entry.year %}
       {{entry.year}}
     {% endif %}
     </span>
@@ -64,8 +66,11 @@
   {% if entry.abstract %}
     [<a class="abstract">Abs</a>]
   {% endif %}
-  {% if entry.arxiv %}
-    [<a href="http://arxiv.org/abs/{{ entry.arxiv }}" target="_blank">arXiv</a>]
+  {% if entry.eprint %}
+    [<a href="http://arxiv.org/abs/{{ entry.eprint }}" target="_blank">arXiv</a>]
+  {% endif %}
+  {% if entry.adsurl %}
+    [<a href="{{ entry.adsurl }}" target="_blank">ADS</a>]
   {% endif %}
   {% if entry.html %}
     [<a href="{{ entry.html }}" target="_blank">HTML</a>]

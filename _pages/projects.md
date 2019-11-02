@@ -2,10 +2,12 @@
 layout: page
 title: projects
 permalink: /projects/
-description: A growing collection of your cool projects.
+description: Research projects and collaborations
 ---
 
-{% for project in site.projects %}
+{% assign ordered_pages = site.projects | sort:"order_number" %}
+
+{% for project in ordered_pages %}
 
 {% if project.redirect %}
 <div class="project">
