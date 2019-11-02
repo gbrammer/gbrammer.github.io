@@ -5,11 +5,13 @@
     padding: 5px;
     vertical-align: middle;
     width: 33.33%;
-
+    min-width: 225px;
+    
     .thumbnail {
         overflow: hidden;
         height: 230px;
         width: 100%;
+        border: 1px solid #ccc;
 
         img {
             height: 100%;
