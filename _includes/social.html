@@ -13,7 +13,9 @@
     {% if site.flickr_username %}<a href="https://www.flickr.com/{{ site.flickr_username }}" target="_blank" title="Flickr"><i class="fab fa-flickr"></i></a>{% endif %}
 </span>
 
-  <div class="col three caption">
-    {{ site.contact_note }}
-  </div>
+{% if site.last_updated %}
+<div class="col three caption">
+  <i> Last updated: {{ site.last_updated }}.</i>
 </div>
+{% endif %}
+
