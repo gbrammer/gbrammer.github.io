@@ -1,59 +1,62 @@
 .project {
-    box-sizing: border-box;
+    // box-sizing: border-box;
     float: left;
-    height: 240px;
-    padding: 5px;
-    vertical-align: middle;
-    width: 33.33%;
-    min-width: 225px;
+    padding: 0px;
+    position:relative;
     
-    .thumbnail {
-        overflow: hidden;
-        height: 230px;
-        width: 100%;
-        border: 1px solid $grey-color-light;
-
-        img {
-            height: 100%;
-            position: relative;
-                left: 0%;
-                top: 0%;
-            width: auto;
-        }
-
-        a {
+    display: inline-flex;
+    
+    width: 100%;
+    margin: 5px;
+    
+    border: 1px solid $grey-color-light;
+    min-height: 90px;
+      
+    .project_thumbnail {
+        float: left; 
+        width: 20%;
+        height: 100%;
+        min-width: 40px;
+        max-width: 140px;
+        
+        margin: auto 0px;
+        
+        .aligned_image {
             float: left;
-            height: 230px;
-            position: relative;
             width: 100%;
-
-            span {
-                display: none;
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                right: 0;
-                background: rgba(0,0,0,0.4);
-                color: $grey-color-light;
-                padding: 30px;
-                text-align: center;
-
-                h1 {
-                    font-size: 1.5rem;
-                    margin: 0;
-                }
-
-                p {
-                    color: $grey-color-light;
-                }
-            }
-
-            &:hover {
-                span {
-                    display: block;
-                }
-            }
+            vertical-align: middle;
         }
+    }
+            
+    .project_text {
+        width: 78%;
+        height: 100%;
+        min-width:150px;
+        float: left;
+
+        margin: auto 0px;
+
+        padding: 0px;
+                        
+        span {
+            vertical-align: middle;
+            color: $text-color;
+            text-align: center;
+            height: 100%;
+            
+            h3 {
+                font-size: 1.0rem;
+                font-weight: bold;
+                margin: 0;
+                padding: 0;
+            }
+
+            p {
+                color: $text-color;
+                font-size: $base-font-size;
+                margin: 0;
+                padding-left: 5px;
+            }
+        }        
     }
 }
