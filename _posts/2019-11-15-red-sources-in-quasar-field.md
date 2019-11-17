@@ -2,11 +2,10 @@
 layout: post
 title:  "Red sources around the z=7.54 quasar ULAS J1342+0928"
 date:   "2019-11-15 15:47:08 +0100"
-categories: research hst charge alma
-
+categories: Research 
+tags: HST charge ALMA
 ---
-
-
+{% include tags.html %}
 (This page is auto-generated from the Jupyter notebook [red-sources-in-quasar-field.ipynb](/assets/post_files/red-sources-in-quasar-field.ipynb).)
 
 ======
