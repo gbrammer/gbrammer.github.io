@@ -11,9 +11,9 @@ layout: default
   {% for post in paginator.posts %}
     <li>
       <h2><a class="post-title" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a></h2>
-      <p class="post-meta">{{ post.date | date: '%B %-d, %Y — %H:%M' }}</p>
+      <p class="post-meta">{{ post.date | date: '%B %-d, %Y — %H:%M' }}
       {% if post.categories %}
-      <p> 
+      /  
           {% for cat in post.categories %}
           <a class="blog-category" href="/blog/categories/#{{ cat }}"> {{ cat }}</a>
           {% endfor %}
@@ -22,8 +22,8 @@ layout: default
               <a class="blog-tag" href="/blog/tags/#{{ tag }}"> {{ tag }}</a>
               {% endfor %}      
           {% endif %}
-      </p>
       {% endif %}
+      </p>
     </li>
   {% endfor %}
 </ul>
