@@ -6,7 +6,8 @@ description:
 years: [2016,2013,2012,2011,2010,2009,2008,2007]
 ---
 
-### Employment
+Employment
+==========
 
 **2018&ndash;**: Associate Professor, Niels Bohr Institute, University of Copenhagen
 
@@ -16,7 +17,8 @@ years: [2016,2013,2012,2011,2010,2009,2008,2007]
 
 **2002&ndash;2004**: Data Analyst, STScI, Baltimore, Maryland
 
-### Education
+Education
+=========
 
 **2010**: Ph.D. (Astronomy), Yale University, New Haven, Connecticut
 
@@ -31,7 +33,8 @@ years: [2016,2013,2012,2011,2010,2009,2008,2007]
 *2001*: NSF-REU Student, CTIO, La Serena, Chile
 
 
-### Publications
+Publications
+============
 
 Selected publications below.  Full ADS query [here](https://ui.adsabs.harvard.edu/search/p_=0&q=brammer%2C%20g&sort=citation_count%20desc%2C%20bibcode%20desc).
 
