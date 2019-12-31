@@ -8,10 +8,17 @@ order_number: 50
 
 Nearly everything I do is available on [GitHub](https://www.github.com/gbrammer).
 
+-----------
+
+Space telescope data analysis
+=============================
+
 [`grizli`](https://www.github.com/gbrammer/grizli) - Comprehensive software 
 pipeline for analyzing space-based imaging and slitless spectroscopy observations.
 
-[`mastquery`](https://www.github.com/gbrammer/mastquery) - Python tools for querying the MAST HST database.
+[`golfir`](https://github.com/gbrammer/golfir) - Make *Spitzer* IRAC and MIPS mosaics that work well with `grizli` *Hubble* images.
+
+[`mastquery`](https://www.github.com/gbrammer/mastquery) - Python tools for querying the MAST HST database.  Some tools also for *Spitzer* in [`mastquery.overlaps.spitzer_query`](https://github.com/gbrammer/mastquery/blob/master/mastquery/overlaps.py#L1086).
 
 [`tristars`](https://www.github.com/gbrammer/tristars) - Asterism matching for astrometric alignment.
 
@@ -21,9 +28,12 @@ pipeline for analyzing space-based imaging and slitless spectroscopy observation
 
 ----------
 
+Photometric redshifts
+=====================
+
 [`eazy`](https://www.github.com/gbrammer/eazy-photoz) - Photometric redshift software from [Brammer, van Dokkum, & Coppi (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...686.1503B).
 
-[`eazy-py`](https://www.github.com/gbrammer/eazy-py) - Complete rewrite of `eazy` in Python.  
+[`eazy-py`](https://www.github.com/gbrammer/eazy-py) - Complete rewrite of `eazy` in Python (recommended).  
 
 
 
