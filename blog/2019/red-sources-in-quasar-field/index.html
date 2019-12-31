@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Gabriel Brammer | Red sources around the z=7.54 quasar ULAS J1342+0928</title>
+  <meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="canonical" href="/blog/2019/red-sources-in-quasar-field/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Gabriel Brammer</strong>
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="/">about</a>
+
+        <!-- Pages -->
+        <!-- >
+          
+        
+          
+            <a class="page-link" href="/blog/categories/">Categories</a>
+          
+        
+          
+            <a class="page-link" href="/cv/">CV</a>
+          
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="/projects/">projects</a>
+          
+        
+          
+            <a class="page-link" href="/blog/tags/">Tags</a>
+          
+        
+          
+         -->
+        
+        <!-- Manual header -->
+        <a class="page-link" href="/cv/">CV</a>
+        <a class="page-link" href="/projects/">projects</a>
+        
+        <!-- Blog -->
+        <a class="page-link" href="/blog/">blog</a>
+
+        <!-- CV link -->
+        <!-- <a class="page-link" href="/assets/pdf/CV.pdf">vitae</a> -->
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Red sources around the z=7.54 quasar ULAS J1342+0928</h1>
+    <p class="post-meta">November 15, 2019</p>
+  </header>
+
+  <article class="post-content">
+    
+<p> 
+    
+    <a class="blog-category" href="/blog/categories/#Research"> Research</a>
+    
+    
+        
+        <a class="blog-tag" href="/blog/tags/#HST"> HST</a>
+        
+        <a class="blog-tag" href="/blog/tags/#charge"> charge</a>
+        
+        <a class="blog-tag" href="/blog/tags/#ALMA"> ALMA</a>
+              
+    
+</p>
+
+<p>(This page is auto-generated from the Jupyter notebook <a href="/assets/post_files/red-sources-in-quasar-field.ipynb">red-sources-in-quasar-field.ipynb</a>.)</p>
+
+<p>======</p>
+
+<p>I was testing algorithms for automatic processing of <em>Spitzer</em> IRAC data that overlaps with HST pointings from the CHArGE / GOLF project and came across some interesting sources in the field around a known quasar at z=7.54 (<a href="https://ui.adsabs.harvard.edu/abs/2019ApJ...881L..23B/abstract">Banados et al. (2019)</a>).</p>
+
+<p>The automatically-reduced CHArGE images of the field can be found at <a href="https://s3.amazonaws.com/grizli-v1/Pipeline/j134208p0929/Prep/j134208p0929.summary.html">https://s3.amazonaws.com/grizli-v1/Pipeline/j134208p0929/Prep/j134208p0929.summary.html</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="kn">import</span> <span class="nn">boto3</span>
+
+<span class="kn">import</span> <span class="nn">astropy.wcs</span> <span class="k">as</span> <span class="n">pywcs</span>
+<span class="kn">import</span> <span class="nn">astropy.io.fits</span> <span class="k">as</span> <span class="n">pyfits</span>
+
+<span class="kn">from</span> <span class="nn">grizli.pipeline</span> <span class="kn">import</span> <span class="n">photoz</span><span class="p">,</span> <span class="n">auto_script</span>
+<span class="kn">from</span> <span class="nn">grizli</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="n">utils</span><span class="o">.</span><span class="n">set_warnings</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">root</span> <span class="o">=</span> <span class="s">'j134208p0929'</span>
+</code></pre></div></div>
+
+<h2 id="fetch-files-from-charge-aws">Fetch files from CHArGE AWS</h2>
+
+<p>All of the HST products are produced automatically as for the many other archival survey fields.  Here, I’ve also included the generated IRAC images and models for them that have been generated by convolving sources detected in the HST catalog (<code class="language-plaintext highlighter-rouge">{root}_phot.fits</code>) with a kernel to match the IRAC CH1 and Ch2 PSFs.  The resulting IRAC model photometry is similar to that produced by codes such as “MOPHONGO” (Labbe et al.) and “T-PHOT” (Merlin et al.).  Details of the IRAC processing TBD.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## Mosaics and photometry file that includes IRAC ch1 + ch2
+</span><span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s">'s3'</span><span class="p">)</span>
+<span class="n">bkt</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="s">'grizli-v1'</span><span class="p">)</span>
+
+<span class="c1"># Catalog with IRAC model photometry.  
+</span><span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s">'Pipeline/{0}/IRAC/{0}irac_phot.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">)]</span>
+
+<span class="c1"># ALMA fluxes of serendipitous source shown below
+</span><span class="n">files</span> <span class="o">+=</span> <span class="p">[</span><span class="s">'Pipeline/{0}/IRAC/alma_serendip_j134208.65p092844.10.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">)]</span>
+
+<span class="c1"># Automatically produced HST mosaics
+</span><span class="n">files</span> <span class="o">+=</span> <span class="p">[</span><span class="s">'Pipeline/{0}/Prep/{0}-f125w_drz_sci.fits.gz'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> 
+          <span class="s">'Pipeline/{0}/Prep/{0}-f105w_drz_sci.fits.gz'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">),</span>
+          <span class="s">'Pipeline/{0}/Prep/{0}-f814w_drc_sci.fits.gz'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">)]</span>
+
+<span class="c1"># Automatic IRAC mosaics with new code
+</span><span class="n">files</span> <span class="o">+=</span> <span class="p">[</span><span class="s">'Pipeline/{0}/IRAC/{0}-ch1_drz_sci.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">),</span>
+          <span class="s">'Pipeline/{0}/IRAC/{0}-ch1_model.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">),</span>
+          <span class="s">'Pipeline/{0}/IRAC/{0}-ch2_drz_sci.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">),</span>
+          <span class="s">'Pipeline/{0}/IRAC/{0}-ch2_model.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">)]</span>
+
+<span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">'.gz'</span><span class="p">))):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'Fetch {0}{1}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">s3_path</span><span class="p">,</span> <span class="nb">file</span><span class="p">))</span>
+        <span class="n">bkt</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="nb">file</span><span class="p">),</span>
+                      <span class="n">ExtraArgs</span><span class="o">=</span><span class="p">{</span><span class="s">"RequestPayer"</span><span class="p">:</span> <span class="s">"requester"</span><span class="p">})</span>    
+    
+        <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">'.gz'</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">'gunzip {0}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'Found {0}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Found Pipeline/j134208p0929/IRAC/j134208p0929irac_phot.fits
+Found Pipeline/j134208p0929/IRAC/alma_serendip_j134208.65p092844.10.fits
+Found Pipeline/j134208p0929/Prep/j134208p0929-f125w_drz_sci.fits.gz
+Found Pipeline/j134208p0929/Prep/j134208p0929-f105w_drz_sci.fits.gz
+Found Pipeline/j134208p0929/Prep/j134208p0929-f814w_drc_sci.fits.gz
+Found Pipeline/j134208p0929/IRAC/j134208p0929-ch1_drz_sci.fits
+Found Pipeline/j134208p0929/IRAC/j134208p0929-ch1_model.fits
+Found Pipeline/j134208p0929/IRAC/j134208p0929-ch2_drz_sci.fits
+Found Pipeline/j134208p0929/IRAC/j134208p0929-ch2_model.fits
+</code></pre></div></div>
+
+<h2 id="photometric-redshifts">Photometric redshifts</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">grizli</code> pipeline includes a wrapper around <a href="https://github.com/gbrammer/eazy-py"><code class="language-plaintext highlighter-rouge">eazy-py</code></a> that knows how to read the auto-generated photometric catalogs.  The example here includes additional IRAC coverage.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Run photo-zs with eazy-py
+</span><span class="n">total_flux</span> <span class="o">=</span> <span class="s">'flux_auto'</span>
+<span class="n">object_only</span><span class="o">=</span><span class="bp">False</span>
+<span class="n">_res</span> <span class="o">=</span> <span class="n">photoz</span><span class="o">.</span><span class="n">eazy_photoz</span><span class="p">(</span><span class="n">root</span><span class="o">+</span><span class="s">'irac'</span><span class="p">,</span> <span class="n">object_only</span><span class="o">=</span><span class="n">object_only</span><span class="p">,</span> 
+                          <span class="n">apply_prior</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">beta_prior</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> 
+                          <span class="n">aper_ix</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> 
+                          <span class="n">get_external_photometry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                          <span class="n">compute_residuals</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                          <span class="n">total_flux</span><span class="o">=</span><span class="n">total_flux</span><span class="p">)</span>
+
+<span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">zout</span> <span class="o">=</span> <span class="n">_res</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Apply catalog corrections
+Compute aperture corrections: i=0, D=0.36" aperture
+Compute aperture corrections: i=1, D=0.50" aperture
+Compute aperture corrections: i=2, D=0.70" aperture
+Compute aperture corrections: i=3, D=1.00" aperture
+Compute aperture corrections: i=4, D=1.20" aperture
+Compute aperture corrections: i=5, D=1.50" aperture
+Compute aperture corrections: i=6, D=3.00" aperture
+Write j134208p0929irac_phot_apcorr.fits
+Read default param file: /Users/gbrammer/miniconda3/envs/grizli-dev/lib/python3.6/site-packages/eazy/data/zphot.param.default
+Read CATALOG_FILE: j134208p0929irac_phot_apcorr.fits
+f105w_tot_1 f105w_etot_1 (202): hst/wfc3/IR/f105w.dat
+f125w_tot_1 f125w_etot_1 (203): hst/wfc3/IR/f125w.dat
+f814w_tot_1 f814w_etot_1 (239): hst/ACS_update_sep07/wfc_f814w_t81.dat
+irac_ch1_flux irac_ch1_err ( 18): IRAC/irac_tr1_2004-08-09.dat
+irac_ch2_flux irac_ch2_err ( 19): IRAC/irac_tr2_2004-08-09.dat
+Read PRIOR_FILE:  templates/prior_F160W_TAO.dat
+Process template tweak_fsps_QSF_12_v3_001.dat.
+Process template tweak_fsps_QSF_12_v3_002.dat.
+Process template tweak_fsps_QSF_12_v3_003.dat.
+Process template tweak_fsps_QSF_12_v3_004.dat.
+Process template tweak_fsps_QSF_12_v3_005.dat.
+Process template tweak_fsps_QSF_12_v3_006.dat.
+Process template tweak_fsps_QSF_12_v3_007.dat.
+Process template tweak_fsps_QSF_12_v3_008.dat.
+Process template tweak_fsps_QSF_12_v3_009.dat.
+Process template tweak_fsps_QSF_12_v3_010.dat.
+Process template tweak_fsps_QSF_12_v3_011.dat.
+Process template tweak_fsps_QSF_12_v3_012.dat.
+Process templates: 1.043 s
+Compute best fits
+Fit 9.1 s (n_proc=10, NOBJ=2552)
+Get best fit coeffs &amp; best redshifts
+Get parameters (UBVJ=[153, 154, 155, 161], LIR=[8, 1000])
+Rest-frame filters: [153, 154, 155, 161]
+
+
+/Users/gbrammer/miniconda3/envs/grizli-dev/lib/python3.6/site-packages/numpy/lib/function_base.py:3826: RuntimeWarning: Invalid value encountered in percentile
+  interpolation=interpolation)
+</code></pre></div></div>
+
+<h2 id="select-high-z-sources">Select high-z sources</h2>
+
+<p>There is a pair of sources with photometric redshifts similar to that of the quasar.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Select high-z sources &amp; show SEDs 
+</span><span class="n">jmag</span> <span class="o">=</span> <span class="mf">23.9</span><span class="o">-</span><span class="mf">2.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'f125w_tot_1'</span><span class="p">])</span>
+<span class="n">sel</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'f814w_etot_1'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zbest</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">so</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">jmag</span><span class="p">[</span><span class="n">sel</span><span class="p">])</span>
+<span class="n">ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'id'</span><span class="p">][</span><span class="n">sel</span><span class="p">][</span><span class="n">so</span><span class="p">];</span> <span class="n">i</span><span class="o">=-</span><span class="mi">1</span>
+
+<span class="c1"># Redshift of the quasar to include in the plots
+</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'z_spec'</span><span class="p">][</span><span class="n">sel</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.54</span> 
+
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'x'</span><span class="p">,</span><span class="s">'y'</span><span class="p">,</span><span class="s">'mag_auto'</span><span class="p">]:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="nb">format</span> <span class="o">=</span> <span class="s">'.1f'</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'ra'</span><span class="p">,</span><span class="s">'dec'</span><span class="p">]:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="nb">format</span> <span class="o">=</span> <span class="s">'.6f'</span>
+    
+<span class="k">print</span><span class="p">(</span><span class="s">'ids should be: {0}'</span><span class="o">.</span><span class="nb">format</span><span class="p">([</span><span class="mi">964</span><span class="p">,</span><span class="mi">435</span><span class="p">,</span><span class="mi">1361</span><span class="p">]))</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">show_results</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+                 <span class="n">show_fnu</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="s">"""
+    Show thumbnail and photoz output
+    """</span>
+    <span class="k">if</span> <span class="nb">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'id'</span><span class="p">]</span> <span class="o">==</span> <span class="nb">id</span>
+        <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'x'</span><span class="p">][</span><span class="n">ix</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'y'</span><span class="p">][</span><span class="n">ix</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="s">'id'</span><span class="p">,</span> <span class="s">'x'</span><span class="p">,</span> <span class="s">'y'</span><span class="p">,</span> <span class="s">'ra'</span><span class="p">,</span><span class="s">'dec'</span><span class="p">,</span> <span class="s">'mag_auto'</span><span class="p">][</span><span class="n">ix</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span> <span class="o">=</span> <span class="n">xy</span>
+        
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cutout_size</span><span class="o">/</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># arcsec
+</span>    <span class="n">slx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">xi</span><span class="o">-</span><span class="n">N</span><span class="p">,</span> <span class="n">xi</span><span class="o">+</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">sly</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">yi</span><span class="o">-</span><span class="n">N</span><span class="p">,</span> <span class="n">yi</span><span class="o">+</span><span class="n">N</span><span class="p">)</span>
+    
+    <span class="c1"># RGB Figure
+</span>    <span class="n">_res</span> <span class="o">=</span> <span class="n">auto_script</span><span class="o">.</span><span class="n">field_rgb</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">show_ir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+               <span class="n">HOME_PATH</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s">'f125w'</span><span class="p">,</span><span class="s">'f105w'</span><span class="p">,</span><span class="s">'f814w'</span><span class="p">],</span> 
+               <span class="n">xsize</span><span class="o">=</span><span class="n">output_size</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s">'png'</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+               <span class="n">xyslice</span> <span class="o">=</span> <span class="p">(</span><span class="n">slx</span><span class="p">,</span> <span class="n">sly</span><span class="p">),</span> <span class="n">add_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+               <span class="n">tick_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># Photo-z fit
+</span>        <span class="n">_fig</span><span class="p">,</span> <span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_fit</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">show_fnu</span><span class="o">=</span><span class="n">show_fnu</span><span class="p">)</span>
+        <span class="n">_fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">semilogy</span><span class="p">()</span>
+        <span class="n">_fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">_res</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ids should be: [964, 435, 1361]
+[964, 435, 1361] 3
+</code></pre></div></div>
+
+<h3 id="z754-quasar">z=7.54 Quasar</h3>
+
+<p><a href="https://ui.adsabs.harvard.edu/abs/2019ApJ...881L..23B/abstract">Banados et al. (2019)</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># z=7.65 quasar
+</span><span class="n">_</span> <span class="o">=</span> <span class="n">show_results</span><span class="p">(</span><span class="mi">964</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> id   x      y        ra       dec    mag_auto
+                     deg       deg      uJy   
+--- ------ ------ ---------- -------- --------
+964 2030.4 1786.9 205.533741 9.477319     20.2
+PATH: ./, files:['./j134208p0929-f814w_drc_sci.fits', './j134208p0929-f105w_drz_sci.fits', './j134208p0929-f125w_drz_sci.fits']
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_11_1.png" alt="png" /></p>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_11_2.png" alt="png" /></p>
+
+<h3 id="additional-candidates">Additional candidates</h3>
+
+<p>Two more candidates with photometric redshifts similar to the redshift of the quasar.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Quite red in HST - IRAC.  Possible z~2
+</span><span class="n">show_results</span><span class="p">(</span><span class="mi">435</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Solid candidate
+</span><span class="n">show_results</span><span class="p">(</span><span class="mi">1361</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> id   x      y        ra       dec    mag_auto
+                     deg       deg      uJy   
+--- ------ ------ ---------- -------- --------
+435 2409.8 1266.1 205.523054 9.462851     25.2
+PATH: ./, files:['./j134208p0929-f814w_drc_sci.fits', './j134208p0929-f105w_drz_sci.fits', './j134208p0929-f125w_drz_sci.fits']
+ id    x      y        ra       dec    mag_auto
+                      deg       deg      uJy   
+---- ------ ------ ---------- -------- --------
+1361 1683.8 2067.7 205.543500 9.485118     26.1
+PATH: ./, files:['./j134208p0929-f814w_drc_sci.fits', './j134208p0929-f105w_drz_sci.fits', './j134208p0929-f125w_drz_sci.fits']
+
+
+
+
+
+(slice(1653, 1713, None),
+ slice(2037, 2097, None),
+ ('f125w', 'f105w', 'f814w'),
+ &lt;Figure size 288x288 with 1 Axes&gt;)
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_13_2.png" alt="png" /></p>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_13_3.png" alt="png" /></p>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_13_4.png" alt="png" /></p>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_13_5.png" alt="png" /></p>
+
+<h2 id="alma-coverage">ALMA coverage</h2>
+
+<p>The quasar was recently observed in ALMA with many spectroscopic tunings in Bands 3-8 for an emission line survey (<a href="https://ui.adsabs.harvard.edu/abs/2019ApJ...881...63N/abstract">Novak et al. (2019)</a>).</p>
+
+<p>The ALMA data are available with the following 
+<a href="http://almascience.nrao.edu/aq/?ra_dec=205.53346%099.47583&amp;result_view=observation&amp;science_observations=on#sortCol=Release%20date&amp;sortDir=asc&amp;col_1=_checkbox_selector;;;&amp;col_2=Project%20code;;;&amp;col_3=Source%20name;;;&amp;col_4=RA;;;&amp;col_5=Dec;;;&amp;col_6=Band;;;&amp;col_7=Integration;;;&amp;col_8=Release%20date;;;&amp;col_9=Velocity%20resolution;;;km/s&amp;col_10=Frequency%20support;;;&amp;col_11=Pub;;;">ALMA Archive query</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Read ALMA and IRAC images
+</span><span class="n">alma_img</span> <span class="o">=</span> <span class="s">'alma_band6.fits'</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">alma_img</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">'wget -O {0} "https://almascience.nrao.edu/dataPortal/requests/anonymous/1650943386147/ALMA/member.uid___A001_X1296_X976.Pisco_sci.spw25.mfs.I.pbcor.fits/member.uid___A001_X1296_X976.Pisco_sci.spw25.mfs.I.pbcor.fits"'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">alma_img</span><span class="p">))</span>
+
+<span class="n">alma</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">alma_img</span><span class="p">)</span>
+<span class="n">alma_wcs</span> <span class="o">=</span> <span class="n">pywcs</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">alma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">alma_pscale</span> <span class="o">=</span> <span class="n">alma_wcs</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">cdelt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">3600</span>
+<span class="n">alma_Jybeam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">alma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<span class="n">hst_j</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'{0}-f125w_drz_sci.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="n">hst_sh</span> <span class="o">=</span> <span class="n">hst_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">hst_wcs</span> <span class="o">=</span> <span class="n">pywcs</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">hst_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">hst_pscale</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="n">ch1</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'{0}-ch1_drz_sci.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ch1_model</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'{0}-ch1_model.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ch1_wcs</span> <span class="o">=</span> <span class="n">pywcs</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">ch1</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">ch1_pscale</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="n">ch2</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'{0}-ch2_drz_sci.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ch2_model</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'{0}-ch2_model.fits'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">show_cutouts</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+    <span class="s">"""
+    Make cutout figures
+    """</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="n">hst_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rd</span><span class="p">]),</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">show_results</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="n">xy</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cutout_size</span><span class="o">=</span><span class="n">cutout_size</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    <span class="n">png</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">'{0}.field.png'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+    
+    <span class="n">ch1_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="n">ch1_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rd</span><span class="p">]),</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">alma_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="n">alma_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rd</span><span class="o">+</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">231</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">png</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">232</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">235</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch1</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">ch1_model</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> 
+              <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">233</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">236</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch2</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">ch2_model</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> 
+              <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ch1_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">ch1_pscale</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">234</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">alma_Jybeam</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'viridis_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">alma_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">alma_pscale</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">alma_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span><span class="o">*</span><span class="n">cutout_size</span><span class="o">/</span><span class="n">alma_pscale</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+    
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h3 id="irac-image-modeling">IRAC image modeling</h3>
+
+<p>Here’s a quick demonstration of the IRAC image modeling, which was used for the photometry shown in the SEDs above.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_pixel_boundaries</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="s">"""
+    Return boundary of non-zero pixels in an image
+    """</span>
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="n">nd</span>
+    <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">find_contours</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="s">'ndim'</span><span class="p">):</span>
+        <span class="bp">None</span>
+    
+    <span class="n">seg</span> <span class="o">=</span> <span class="p">(</span><span class="n">mask</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">segmentation</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">edge</span> <span class="o">=</span> <span class="n">find_contours</span><span class="p">(</span><span class="n">segmentation</span><span class="p">[</span><span class="n">skip</span><span class="o">//</span><span class="mi">2</span><span class="p">::</span><span class="n">skip</span><span class="p">,</span><span class="n">skip</span><span class="o">//</span><span class="mi">2</span><span class="p">::</span><span class="n">skip</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edge</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">edge</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">shapes</span><span class="p">)]</span><span class="o">*</span><span class="n">skip</span>
+
+<span class="n">hst_edge</span> <span class="o">=</span> <span class="n">get_pixel_boundaries</span><span class="p">(</span><span class="n">hst_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">hst_edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">hst_edge_xy</span> <span class="o">=</span> <span class="n">ch1_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">hst_wcs</span><span class="o">.</span><span class="n">all_pix2world</span><span class="p">(</span><span class="n">hst_edge</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">hst_edge_xy</span> <span class="o">=</span> <span class="bp">None</span>
+    
+<span class="k">def</span> <span class="nf">show_irac_models</span><span class="p">(</span><span class="n">px</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="c1"># Show IRAC images and model
+</span>    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="o">*</span><span class="n">hst_sh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">hst_sh</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">221</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s">'IRAC ch1, image'</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s">'left'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">'bottom'</span><span class="p">,</span> 
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s">'fc'</span><span class="p">:</span><span class="s">'w'</span><span class="p">})</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">223</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch1</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">ch1_model</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s">r'IRAC ch1, image $-$ model'</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s">'left'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">'bottom'</span><span class="p">,</span> 
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s">'fc'</span><span class="p">:</span><span class="s">'w'</span><span class="p">})</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">222</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s">'IRAC ch2, image'</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s">'left'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">'bottom'</span><span class="p">,</span> 
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s">'fc'</span><span class="p">:</span><span class="s">'w'</span><span class="p">})</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">224</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ch2</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">ch2_model</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'magma_r'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s">r'IRAC ch2, image $-$ model'</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s">'left'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">'bottom'</span><span class="p">,</span> 
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s">'fc'</span><span class="p">:</span><span class="s">'w'</span><span class="p">})</span>
+    
+    <span class="n">py</span> <span class="o">=</span> <span class="n">px</span><span class="o">*</span><span class="n">hst_sh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">hst_sh</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c1"># The IRAC image is only modeled within HST footprint
+</span>    <span class="n">corners</span> <span class="o">=</span> <span class="n">ch1_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">hst_wcs</span><span class="o">.</span><span class="n">calc_footprint</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">corners</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="nb">min</span><span class="p">()</span><span class="o">+</span><span class="n">px</span><span class="p">,</span> <span class="n">corners</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span><span class="o">-</span><span class="n">py</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">corners</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="nb">min</span><span class="p">()</span><span class="o">+</span><span class="n">py</span><span class="p">,</span> <span class="n">corners</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span><span class="o">-</span><span class="n">py</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hst_edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hst_edge_xy</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">hst_edge_xy</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="n">show_irac_models</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_17_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Zoom in
+</span><span class="n">show_irac_models</span><span class="p">()</span>
+<span class="n">f</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span><span class="o">+</span><span class="mi">20</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="p">(</span><span class="n">dx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">dx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span><span class="o">+</span><span class="mi">20</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="p">(</span><span class="n">dy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">dy</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_18_0.png" alt="png" /></p>
+
+<h2 id="alma-sources">ALMA sources</h2>
+
+<p>There is not one (the quasar) but are rather two sources visible in the ALMA map!</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Galaxy
+</span><span class="n">rg</span><span class="p">,</span> <span class="n">dg</span> <span class="o">=</span> <span class="mf">205.5360413</span><span class="p">,</span> <span class="mf">9.478936196</span>
+
+<span class="c1"># Quasar
+</span><span class="n">rq</span><span class="p">,</span> <span class="n">dq</span> <span class="o">=</span> <span class="mf">205.5337405</span><span class="p">,</span> <span class="mf">9.477319032</span>
+
+<span class="c1"># ALMA image
+</span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">alma_Jybeam</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'viridis_r'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s">'{0:.1f} GHz'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">alma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s">'CRVAL3'</span><span class="p">]</span><span class="o">/</span><span class="mf">1.e9</span><span class="p">),</span>
+        <span class="n">ha</span><span class="o">=</span><span class="s">'left'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">'bottom'</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">coo</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">rg</span><span class="p">,</span> <span class="n">dg</span><span class="p">),</span> <span class="p">(</span><span class="n">rq</span><span class="p">,</span> <span class="n">dq</span><span class="p">)]:</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">alma_wcs</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">coo</span><span class="o">+</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s">'s'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> 
+               <span class="n">s</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s">'None'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_20_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Quasar
+</span><span class="n">show_cutouts</span><span class="p">((</span><span class="n">rq</span><span class="p">,</span> <span class="n">dq</span><span class="p">),</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PATH: ./, files:['./j134208p0929-f814w_drc_sci.fits', './j134208p0929-f105w_drz_sci.fits', './j134208p0929-f125w_drz_sci.fits']
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_21_1.png" alt="png" /></p>
+
+<h2 id="serendipitous-alma-source">Serendipitous ALMA source</h2>
+
+<p>The second source is all but invisible in the HST image, putting it in the class of “HST-dark” far-IR sources described frequently in the recent literature.  I really don’t like that term generally as the relevant characteristic is exactly how faint a source is in the optical/NIR compared to the detection in redder bands (e.g. <em>Spitzer</em> or ALMA).  That is, whether the HST “darkness” is interesting or not depends entirely on the depth/filters of the associated HST imaging.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># "Dark" galaxy.  Not in the model so shows up in the residual
+</span><span class="n">show_cutouts</span><span class="p">((</span><span class="n">rg</span><span class="p">,</span> <span class="n">dg</span><span class="p">),</span> <span class="n">cutout_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PATH: ./, files:['./j134208p0929-f814w_drc_sci.fits', './j134208p0929-f105w_drz_sci.fits', './j134208p0929-f125w_drz_sci.fits']
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_23_1.png" alt="png" /></p>
+
+<h2 id="optical-ir-sed">Optical-IR SED</h2>
+
+<p>It turns out that the serendipitous source is detected in nearly all of the available ALMA bands.  I made a quick measurement of the SED, taking the peak fluxes in the ALMA pipeline beam-corrected maps.</p>
+
+<p>The SED below shows that it is in fact a very red source.  The SED probably doesn’t allow for very high redshifts (z &gt; 4, say) since you need a fairly broad lever arm on the extinction curve in order to get  red enough between F125W and 3.6 microns and not <em>overproduce</em> the far-IR seen in the ALMA maps.</p>
+
+<p>The example shown is a fiducial FSPS model at z=1.5 with V-band optical depth (~Av) = 6 (Calzetti).</p>
+
+<p>So, unfortunatlely the source probably isn’t at the same extreme redshift as the quasar, but that it potentially at such <em>low</em> redshift is itself somewhat surprising.  An extinction of Av=6 is higher than we generally see in deep surveys that cover thsee redshifts, but it’s not crazy.  How many of these sources might be out there?</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Source photometry, simply the maximum pixel value in a 2.6" aperture around the target
+# in All of the available ALMA bands
+</span><span class="n">phot</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">read_catalog</span><span class="p">(</span><span class="s">'alma_serendip_j134208.65p092844.10.fits'</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">phot</span><span class="p">[</span><span class="s">'wave'</span><span class="p">][</span><span class="mi">3</span><span class="p">:],</span> <span class="n">phot</span><span class="p">[</span><span class="s">'fnu'</span><span class="p">][</span><span class="mi">3</span><span class="p">:],</span> 
+             <span class="n">xerr</span><span class="o">=</span><span class="n">phot</span><span class="p">[</span><span class="s">'dw'</span><span class="p">][</span><span class="mi">3</span><span class="p">:],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">phot</span><span class="p">[</span><span class="s">'efnu'</span><span class="p">][</span><span class="mi">3</span><span class="p">:],</span> 
+             <span class="n">marker</span><span class="o">=</span><span class="s">'o'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s">'None'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'IRAC + ALMA'</span><span class="p">)</span>
+
+<span class="c1"># HST values are random draws from the median uncertainty in each band
+</span><span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">phot</span><span class="p">[</span><span class="s">'wave'</span><span class="p">][:</span><span class="mi">3</span><span class="p">],</span> <span class="n">phot</span><span class="p">[</span><span class="s">'fnu'</span><span class="p">][:</span><span class="mi">3</span><span class="p">],</span> 
+             <span class="n">xerr</span><span class="o">=</span><span class="n">phot</span><span class="p">[</span><span class="s">'dw'</span><span class="p">][:</span><span class="mi">3</span><span class="p">],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">phot</span><span class="p">[</span><span class="s">'efnu'</span><span class="p">][:</span><span class="mi">3</span><span class="p">],</span> 
+             <span class="n">marker</span><span class="o">=</span><span class="s">'v'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s">'None'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'HST limits'</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">r'$\lambda_\mathrm{obs}$'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">r'Flux density'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">r'1 $\mu\mathrm{m}$'</span><span class="p">,</span> <span class="s">'10'</span><span class="p">,</span> <span class="s">'100'</span><span class="p">,</span> <span class="s">'1 mm'</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="s">'1 nJy'</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> 
+                    <span class="s">r'1 $\mu\mathrm{Jy}$'</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s">'1 mJy'</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span> <span class="c1">#r'1 $\mu\mathrm{m}$', '10', '100', '1 mm'])
+</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">8.e-5</span><span class="p">,</span> <span class="mf">1.e4</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mf">4.1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+<span class="c1"># ad-hoc FSPS model
+</span><span class="kn">import</span> <span class="nn">fsps</span>
+<span class="kn">import</span> <span class="nn">astropy.constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="n">u</span>
+<span class="kn">from</span> <span class="nn">astropy.cosmology</span> <span class="kn">import</span> <span class="n">Planck15</span>
+        
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Avoid re-initializing 
+</span>    <span class="n">_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">'dust2'</span><span class="p">]</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">fsps</span><span class="o">.</span><span class="n">StellarPopulation</span><span class="p">(</span><span class="n">zcontinuous</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dust_type</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sfh</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+
+<span class="c1"># guess params
+</span><span class="n">dust2</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">z</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="n">tage</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+<span class="n">sp</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">'dust2'</span><span class="p">]</span> <span class="o">=</span> <span class="n">dust2</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">'add_neb_emission'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">wsp</span><span class="p">,</span> <span class="n">flux</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">get_spectrum</span><span class="p">(</span><span class="n">tage</span><span class="o">=</span><span class="n">tage</span><span class="p">,</span> <span class="n">peraa</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c1"># Scale to observed frame
+</span><span class="n">flux</span> <span class="o">=</span> <span class="p">(</span><span class="n">flux</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span><span class="o">*</span><span class="n">const</span><span class="o">.</span><span class="n">L_sun</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="mf">1.e23</span><span class="o">*</span><span class="mf">1.e6</span>
+<span class="n">dL</span> <span class="o">=</span> <span class="n">Planck15</span><span class="o">.</span><span class="n">luminosity_distance</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+<span class="n">flux</span> <span class="o">/=</span> <span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">dL</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Normalize to 3.6um
+</span><span class="n">flux_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="mf">3.6e4</span><span class="p">,</span> <span class="n">wsp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">),</span> <span class="n">flux</span><span class="p">)</span><span class="o">/</span><span class="n">phot</span><span class="p">[</span><span class="s">'fnu'</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="n">log_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">stellar_mass</span><span class="o">/</span><span class="n">flux_norm</span><span class="p">)</span>
+<span class="n">sfr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sfr_avg</span><span class="p">()</span><span class="o">/</span><span class="n">flux_norm</span>
+
+<span class="c1"># Show the model
+</span><span class="n">label</span> <span class="o">=</span> <span class="s">'z={0:.1f} tage={1:.1f}, dust2={0:.1f}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">tage</span><span class="p">,</span> <span class="n">dust2</span><span class="p">)</span>
+<span class="n">label</span> <span class="o">+=</span> <span class="s">'</span><span class="se">\n</span><span class="s">'</span>
+<span class="n">label</span> <span class="o">+=</span> <span class="s">'logM={0:.1f} SFR={1:.1f}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">log_mass</span><span class="p">,</span> <span class="n">sfr</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wsp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span><span class="o">/</span><span class="mf">1.e4</span><span class="p">,</span> <span class="n">flux</span><span class="o">/</span><span class="n">flux_norm</span><span class="p">,</span> 
+         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/post_files/red-sources-in-quasar-field_files/red-sources-in-quasar-field_25_0.png" alt="png" /></p>
+
+
+  </article>
+
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <!-- ><footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2019 Gabriel Brammer.
+    
+    
+        Last updated: 2019-11-02.
+    
+  </div>
+
+</footer>
+-->
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="/assets/js/common.js"></script>
+
+
+<!-- Load KaTeX -->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+<script src="/assets/js/katex.js"></script>
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-4292730-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>
